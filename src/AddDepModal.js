@@ -1,72 +1,87 @@
 import React, { Component } from 'react';
 import { Modal, Button, Row, Col, Form } from 'react-bootstrap';
 
-
-export class AddDepModel extends Component {
+export class AddDepModal extends Component {
     constructor(props) {
         super(props);
-        this.handleSubmit=this.handleSubmit.bind(this);
-
+        this.state = {
+            departmentName: '',
+        };
     }
-    handleSubmit(event){
+
+    handleChange = (event) => {
+        this.setState({ departmentName: event.target.value });
+    };
+
+    handleSubmit = (event) => {
         event.preventDefault();
-        fetch(process.env.REACT_APP_API+'department',{
-            method:'POST',
-            headers:{
-                'Accept':'application/json',
-                'Content-Type':'application/json'
+
+        const newDepartment = {
+            departmentName: this.state.departmentName
+        };
+
+        fetch(process.env.REACT_APP_API + 'Department', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             },
-            body:JSON.stringify({
-                DepartmentId:null,
-                DepartmentName:event.target.DepartmentName.value
-            })
+            body: JSON.stringify(newDepartment)
         })
-            .then(res=>res.json())
-            .then((result)=>{
-                    alert(result);
-                },
-                (error)=>{
-                    alert('Failed');
-                })
+            .then(response => response.json())
+            .then(data => {
+                this.props.onAddDepartment(data); // Assurez-vous que cette prop est passée et utilisée
+                this.props.onHide();
+                this.resetForm(); // Réinitialiser le formulaire après ajout
+
+            })
+            .catch(error => {
+                console.error('Erreur lors de l\'ajout du département:', error.message);
+            });
+    }
+    // Méthode pour réinitialiser le formulaire
+    resetForm() {
+        this.setState({ departmentName: '' });
     }
 
     render() {
+        return (
+            <Modal
+                {...this.props}
+                size="lg"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title id="contained-modal-title-vcenter">
+                        Add Department
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Row>
+                        <Col sm={6}>
+                            <Form onSubmit={this.handleSubmit}>
+                                <Form.Group controlId="departmentName">
+                                    <Form.Label>Department Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="departmentName"
+                                        required
+                                        placeholder="Department Name"
+                                        value={this.state.departmentName}
+                                        onChange={this.handleChange}
+                                    />
+                                </Form.Group>
 
-        return(
-            <div className="container">
-                <Modal
-                    {...this.props}
-                    size="lg"
-                    aria-labelledby="contained-modal-title-vcenter"
-                    centered
->
-                    <Modal.Header clooseButton>
-                        <Modal.Title id="contained-modal-title-vcenter">
-                            Add Department
-                        </Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-
-                        <Row>
-                            <Col sm={6}>
-                                <Form onSubmit={this.handleSubmit}>
-                                    <Form.Group controlId="DepartmentName">
-                                        <Form.Label>DepartmentName</Form.Label>
-                                        <Form.Control type="text" name="DepartmentName" required
-                                                      placeholder="DepartmentName"/>
-                                    </Form.Group>
-
-                                    <Form.Group>
-                                        <Button variant="primary" type="submit">
-                                            Add Department
-                                        </Button>
-                                    </Form.Group>
-                                </Form>
-                            </Col>
-                        </Row>
-                    </Modal.Body>
-                </Modal>
-            </div>
-        )
+                                <Form.Group>
+                                    <Button variant="primary" type="submit">
+                                        Add Department
+                                    </Button>
+                                </Form.Group>
+                            </Form>
+                        </Col>
+                    </Row>
+                </Modal.Body>
+            </Modal>
+        );
     }
 }
